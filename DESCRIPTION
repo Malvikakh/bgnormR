@@ -1,0 +1,59 @@
+Package: BgNorm 
+Title: A Gaussian mixture model–based background correction for multiplex spatial imaging data
+Version: 0.99.0
+Authors@R: c(
+            person(given = "Malvika",
+                   family = "Kharbanda",
+                   role = c("aut", "cre"),
+                   email = "malvika.kharbanda@adelaide.edu.au",
+                   comment = c(ORCID = "0000-0001-9726-3023")),
+            person(given = "Dharmesh D.",
+                   family = "Bhuva",
+                   role = c("aut"),
+                   email = "dharmesh.bhuva@adelaide.edu.au",
+                   comment = c(ORCID = "0000-0002-6398-9157")),
+            person(given = "Agus",
+                   family = "Salim",
+                   role = c("aut"),
+                   email = "salim.a@unimelb.edu.au",
+                   comment = c(ORCID = "0000-0003-3999-7701"))
+            )
+Description: This package provides a Gaussian mixture model (GMM) based approach for background correction of multiplex tissue imaging intensities. BgNorm adjusts technical background signal at the pixel or cell level, generating background-adjusted measurements suitable for downstream spatial and single-cell analyses.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+biocViews: Software, Normalization, Proteomics, Spatial, ImageProcessing
+Depends:
+  R (>= 4.5)
+Imports:
+    methods,
+    stats,
+    BiocGenerics,
+    SummarizedExperiment,
+    SpatialExperiment,
+    RBioFormats,
+    EBImage,
+    mclust,
+    ggplot2,
+    viridis,
+    png,
+    dplyr,
+    tidyr
+Suggests:
+    BiocStyle,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    tiff,
+    ijtiff,
+    parallel,
+    doParallel,
+    foreach,
+    MoMAColors,
+    patchwork,
+    vissE
+SystemRequirements: Java (>= 1.8)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+LazyData: false
