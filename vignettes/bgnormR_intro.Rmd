@@ -1,0 +1,305 @@
+---
+title: "BgNormR"
+author: "Malvika Kharbanda"
+date: "`r BiocStyle::doc_date()`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    toc: yes
+    toc_depth: 2
+    number_sections: yes
+    fig_caption: yes
+    df_print: paged
+abstract: >
+ This package implements a three-component Gaussian mixture model (GMM) based framework for background correction in multiplex spatial imaging data. BgNorm models marker intensity distributions as mixtures of background and signal components and applies statistically derived corrections at the pixel or cell level, producing background-adjusted measurements for downstream spatial and single-cell analyses.
+vignette: >
+  %\VignetteIndexEntry{BgNorm}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Introduction
+
+The **BgNormR** package provides comprehensive methods for background
+normalization of spatial imaging data, particularly multi-channel
+spatial proteomics images from platforms like Akoya PCF (formerly CODEX)
+and similar technologies. The package implements:
+
+-   **Image processing workflows** with median filtering and log
+    transformation
+-   **Gaussian Mixture Model (GMM) based normalization** to identify and
+    remove background noise from pre-processed images
+-   **Statistical divergence metrics** (Cohen's d for quality control)
+-   **Quality control (QC) heatmap visualization** for assessing
+    normalization quality across samples and channels
+
+These tools improve biological signal detection and enhance the quality
+of downstream spatial analyses.
+
+# Theoretical Background
+
+## Three-Component Signal Model
+
+![](images/bgnorm.png)
+
+BgNorm assumes that pixel intensities arise from three latent signal
+sources:
+
+-   **Background pixels**: technical background signal\
+-   **Non-specific binding pixels**: background plus non-specific
+    staining\
+-   **Signal pixels**: background, non-specific binding, and true
+    biological signal
+
+Observed intensities are modeled using a three-component Gaussian
+mixture model, with parameters estimated using an
+expectation–maximization algorithm (via `mclust`).
+
+## Background Correction
+
+Background correction is performed by estimating the expected biological
+signal conditional on the observed intensity. Pixels assigned to
+background or non-specific components are assumed to contain no
+biological signal. For pixels belonging to the biological signal
+component, the corrected signal is obtained using a conditional
+expectation:
+
+$$
+E(U_{3i} \mid X_i = x, C_i = 3) = (\mu_3 - \mu_2) + w \cdot (x - \mu_3),
+$$
+
+where $\mu_2$ and $\mu_3$ are the estimated means of the non-specific
+and biological signal components, respectively, and $w$ is a
+variance-dependent weighting factor derived from the mixture model.
+
+## Final Correction
+
+Because component membership is unknown, BgNorm computes a probabilistic
+correction by weighting the corrected signal by the posterior
+probability that a pixel belongs to the biological signal component:
+
+$$
+E(U_{3i} \mid X_i = x) = E(U_{3i} \mid X_i = x, C_i = 3) P(C_i = 3 \mid X_i = x).
+$$
+
+# Installation
+
+You can install the development version of BgNorm from GitHub:
+
+```{r installation, eval=FALSE}
+devtools::install_github("Malvikakh/BgNormR")
+
+# Set Java heap size (required for RBioFormats)
+options(java.parameters = "-Xmx8g")
+```
+
+# Quick Start
+
+## Load the package
+
+```{r load_package, eval=FALSE}
+library(BgNormR)
+
+# Set Java heap size for RBioFormats
+options(java.parameters = "-Xmx8g")
+```
+
+# Image Pre-processing Workflow
+
+Before GMM normalization, we require the image to be pre-processed and
+saved as an RDS matrix object. We have a few functions to achieve this.
+
+## Processing a Single Channel
+
+For spatial imaging data, you can process individual channels from
+multi-channel images:
+
+```{r process_channel, eval=FALSE}
+# Process a single channel from a multi-channel image
+processChannel(
+  file = "path/to/image.tif",
+  channel_index = 1,
+  channel_name = "DAPI",
+  output_dir = "output",
+  cofactor = 16,
+  filter_size = 1,
+  bit_depth = 8
+)
+```
+
+## Batch Processing Multiple Channels
+
+Process all channels from an image file:
+
+```{r process_multi, eval=FALSE}
+# Define channel names
+channels <- c("DAPI", "CD3", "CD8", "CD20", "PanCK")
+
+# Process all channels
+results <- processMultiChannelImage(
+  file = "path/to/image.tif",
+  channel_names = channels,
+  output_dir = "output",
+  cofactor = 16,
+  bit_depth = 8,
+  parallel = FALSE  # Set TRUE for parallel processing
+)
+```
+
+## Batch Processing Multiple Files
+
+Process multiple image files in batch mode:
+
+```{r batch_process, eval=FALSE}
+# Process all TIFF files in a directory
+batchProcessImages(
+  file_pattern = "tif$",
+  input_dir = "input_data",
+  channel_names = channels,
+  output_dir = "output_data",
+  cofactor = 16,
+  bit_depth = 8
+)
+```
+
+# GMM-based Normalization
+
+## Processing a Channel with GMM
+
+For spatial imaging data with cell segmentation, the GMM normalization
+workflow provides advanced background correction:
+
+```{r gmm_example, eval=FALSE}
+# Process a channel with GMM normalization
+result <- processChannelGMM(
+  file = "path/to/channel_intensity.rds",
+  channel_name = "CD45",
+  cell_mask = "path/to/segmentation_mask.rds",
+  cofactor = 150,
+  bit_depth = 16,
+  G = 3,  # Number of GMM components
+  nsample = 1e5  # Number of pixels to sample for GMM fitting
+)
+
+# Access results
+pixel_data <- result$pixel_data     # Per-pixel data with classifications
+cell_data <- result$cell_data       # Per-cell median summaries
+gmm_params <- result$gmm_summary    # GMM parameters and metrics
+density_data <- result$density_data # Density data for visualization
+```
+
+# Statistical Metrics
+
+The package provides functions to calculate effect size using Cohen's d,
+which can be visualized using the QC heatmap.
+
+## Creating a QC Heatmap
+
+Generate QC heatmaps to visualize normalization quality across samples
+and channels:
+
+```{r qc_heatmap, eval=FALSE}
+# Load example GMM summary data
+# gmm_data <- readRDS(system.file("extdata", "example_gmm_summary.rds", package = "BgNorm"))
+
+# Create Cohen's d heatmap
+heatmap <- createQCHeatmap(
+  gmm_summary_data = gmm_data
+)
+
+print(heatmap)
+```
+
+## Interpreting QC Heatmaps
+
+**Cohen's d** is commonly used for QC assessment: - **Small effect**
+(\|d\| ≈ 0.2): Poor separation between background and signal - **Medium
+effect** (\|d\| ≈ 0.5): Moderate separation - **Large effect** (\|d\| ≥
+0.8): Good separation between components
+
+Higher Cohen's d values indicate better quality normalization with clear
+distinction between background and signal components.
+
+# Complete Workflow Example
+
+Here's a complete workflow from image processing to QC visualization:
+
+```{r complete_workflow, eval=FALSE}
+# Method 1: Step-by-step workflow
+# 1. Process multi-channel images
+channels <- c("CD3", "CD8", "CD20", "CD45", "PanCK")
+processMultiChannelImage(
+  file = "sample_image.tif",
+  channel_names = channels,
+  output_dir = "processed_data",
+  cofactor = 16,
+  bit_depth = 8
+)
+
+# 2. Apply GMM normalization to each channel
+# (assuming you have cell segmentation masks)
+gmm_results <- list()
+for (ch in channels) {
+  result <- processChannelGMM(
+    file = paste0("processed_data/sample_image_", ch, "_log2.rds"),
+    channel_name = ch,
+    cell_mask = "segmentation_mask.rds",
+    cofactor = 150,
+    bit_depth = 16,
+    G = 3
+  )
+  gmm_results[[ch]] <- result
+}
+
+# 3. Combine GMM summaries
+gmm_summary <- do.call(rbind, lapply(gmm_results, function(x) x$gmm_summary))
+gmm_summary$sample <- "Sample1"
+
+# 4. Create QC heatmap
+qc_heatmap <- createQCHeatmap(
+  gmm_summary_data = gmm_summary
+)
+
+print(qc_heatmap)
+
+# 5. Save results
+saveRDS(gmm_summary, "gmm_summary.rds")
+ggsave("qc_heatmap.png", qc_heatmap, width = 10, height = 6)
+```
+
+## High-Level Workflow Function
+
+For convenience, BgNorm provides high-level wrapper function:
+
+```{r high_level_workflow, eval=FALSE}
+# Complete workflow with one function call
+results <- run_gmm_workflow(
+  image_file = "sample.tif",
+  channel_names = c("CD3", "CD8", "CD20"),
+  cell_mask = "segmentation.rds",
+  output_dir = "results",
+  create_qc = TRUE,
+  save_results = TRUE
+)
+
+# View results
+print(results)
+summary(results)
+
+# Access specific results
+qc_plot <- results$qc_plots
+cell_data <- results$cell_data
+```
+
+# Session Information
+
+```{r session_info}
+sessionInfo()
+```
