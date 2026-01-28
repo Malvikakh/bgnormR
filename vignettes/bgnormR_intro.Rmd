@@ -1,5 +1,5 @@
 ---
-title: "BgNormR"
+title: "bgnormR"
 author: "Malvika Kharbanda"
 date: "`r BiocStyle::doc_date()`"
 output:
@@ -11,9 +11,9 @@ output:
     fig_caption: yes
     df_print: paged
 abstract: >
- This package implements a three-component Gaussian mixture model (GMM) based framework for background correction in multiplex spatial imaging data. BgNorm models marker intensity distributions as mixtures of background and signal components and applies statistically derived corrections at the pixel or cell level, producing background-adjusted measurements for downstream spatial and single-cell analyses.
+ This package implements a three-component Gaussian mixture model (GMM) based framework for background correction in multiplex spatial imaging data. bgnorm models marker intensity distributions as mixtures of background and signal components and applies statistically derived corrections at the pixel or cell level, producing background-adjusted measurements for downstream spatial and single-cell analyses.
 vignette: >
-  %\VignetteIndexEntry{BgNorm}
+  %\VignetteIndexEntry{bgnorm}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # Introduction
 
-The **BgNormR** package provides comprehensive methods for background
+The **bgnormR** package provides comprehensive methods for background
 normalization of spatial imaging data, particularly multi-channel
 spatial proteomics images from platforms like Akoya PCF (formerly CODEX)
 and similar technologies. The package implements:
@@ -49,7 +49,7 @@ of downstream spatial analyses.
 
 ![](images/bgnorm.png)
 
-BgNorm assumes that pixel intensities arise from three latent signal
+bgnorm assumes that pixel intensities arise from three latent signal
 sources:
 
 -   **Background pixels**: technical background signal\
@@ -81,7 +81,7 @@ variance-dependent weighting factor derived from the mixture model.
 
 ## Final Correction
 
-Because component membership is unknown, BgNorm computes a probabilistic
+Because component membership is unknown, bgnorm computes a probabilistic
 correction by weighting the corrected signal by the posterior
 probability that a pixel belongs to the biological signal component:
 
@@ -91,10 +91,10 @@ $$
 
 # Installation
 
-You can install the development version of BgNorm from GitHub:
+You can install the development version of bgnorm from GitHub:
 
 ```{r installation, eval=FALSE}
-devtools::install_github("Malvikakh/BgNormR")
+devtools::install_github("Malvikakh/bgnormR")
 
 # Set Java heap size (required for RBioFormats)
 options(java.parameters = "-Xmx8g")
@@ -105,7 +105,7 @@ options(java.parameters = "-Xmx8g")
 ## Load the package
 
 ```{r load_package, eval=FALSE}
-library(BgNormR)
+library(bgnormR)
 
 # Set Java heap size for RBioFormats
 options(java.parameters = "-Xmx8g")
@@ -207,7 +207,7 @@ and channels:
 
 ```{r qc_heatmap, eval=FALSE}
 # Load example GMM summary data
-# gmm_data <- readRDS(system.file("extdata", "example_gmm_summary.rds", package = "BgNorm"))
+# gmm_data <- readRDS(system.file("extdata", "example_gmm_summary.rds", package = "bgnorm"))
 
 # Create Cohen's d heatmap
 heatmap <- createQCHeatmap(
@@ -276,7 +276,7 @@ ggsave("qc_heatmap.png", qc_heatmap, width = 10, height = 6)
 
 ## High-Level Workflow Function
 
-For convenience, BgNorm provides high-level wrapper function:
+For convenience, bgnorm provides high-level wrapper function:
 
 ```{r high_level_workflow, eval=FALSE}
 # Complete workflow with one function call
