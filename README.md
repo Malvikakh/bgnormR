@@ -19,7 +19,7 @@ bgnorm uses a statistical mixture model to separate these three signal types and
 Install the development version from GitHub:
 
 ``` r
-remotes::install_github("Malvikakh/bgnormR")
+remotes::install_github("BhuvaLab/bgnormR")
 ```
 
 ### System Requirements
