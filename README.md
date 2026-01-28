@@ -81,6 +81,5 @@ print(results$qc_plots$cohen_d)
 ## Citation 
 If you use bgnormR in your research, please cite:
 
-Kharbanda, M. (2026). *BhuvaLab/bgnormR: bgnormR (Development Pre-release) (v0.99.0)*. Zenodo.  
-https://doi.org/10.5281/zenodo.18398796
+Kharbanda, M., Tubelleza, R., Tan, Y., Tan, C. W., Kulasinghe, A., Salim, A., & Bhuva, D. D. (2026). BhuvaLab/bgnormR: A Background Correction and Normalisation Framework for multiplex Immunofluorescence Spatial Proteomics (Development Pre-release) (v0.99.0). Zenodo. https://doi.org/10.5281/zenodo.18398796
 
