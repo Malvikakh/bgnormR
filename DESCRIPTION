@@ -1,4 +1,4 @@
-Package: BgNorm 
+Package: bgnormR
 Title: A Gaussian mixture model–based background correction for multiplex spatial imaging data
 Version: 0.99.0
 Authors@R: c(
